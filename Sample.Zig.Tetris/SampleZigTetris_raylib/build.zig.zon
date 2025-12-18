@@ -1,0 +1,18 @@
+.{
+    .name = .SampleZigTetris_raylib,
+    .fingerprint = 0x128933e413d4a3f5,
+    .version = "0.0.0",
+    .minimum_zig_version = "0.15.2",
+
+    .dependencies = .{
+        .dep_SampleZigTetris = .{
+            .path = "../SampleZigTetris",
+        },
+    },
+
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+    },
+}
