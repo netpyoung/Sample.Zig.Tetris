@@ -78,9 +78,9 @@ pub fn FixedUpdate(self: *Game, fixed_dt: f64) void {
 
 pub fn Render(self: *const Game) void {
     const table = self._gameState.GetTable();
+    _RenderTable(table);
 
     if (!self._gameState.IsGameOver()) {
-        _RenderTable(table);
         _RenderShape(self._gameState.GetCurrentPos(), self._gameState.GetCurrShape());
         if (self._gameState.GetShadowPosOrNull()) |shadowPos| {
             _RenderShadowShape(shadowPos, self._gameState.GetCurrShape());
@@ -89,8 +89,6 @@ pub fn Render(self: *const Game) void {
         _RenderShape(int2.init(12, 2), self._gameState.GetNextShape());
         return;
     }
-
-    _RenderTable(table);
 
     // render GameOver
     const text = ray.TextFormat("GAME OVER");
@@ -122,47 +120,34 @@ fn _RenderTable(table: *const Table) void {
     r_shape.width = Const.BLOCK_SIZE - screenOffset;
     r_shape.height = Const.BLOCK_SIZE - screenOffset;
 
-    for (0..table.height) |y| {
-        for (0..table.width) |x| {
-            const e: E_SHAPE = table.GetValue(x, y);
-            if (e == E_SHAPE.NONE) {
-                continue;
-            }
-
-            const color = _E_SHAPE_ToColor(e);
-            const screenX: f32 = @floatFromInt(x * Const.BLOCK_SIZE + screenOffset);
-            const screenY: f32 = @floatFromInt(y * Const.BLOCK_SIZE + screenOffset);
-            r_shape.x = screenX;
-            r_shape.y = screenY;
-
-            ray.DrawRectangleRec(r_shape, color);
+    var iter = table.iterate();
+    while (iter.next()) |item| {
+        const e = item.e;
+        if (e == E_SHAPE.NONE) {
+            continue;
         }
+        
+        const x = item.x;
+        const y = item.y;
+        const color = _E_SHAPE_ToColor(e);
+        const screenX: f32 = @floatFromInt(x * Const.BLOCK_SIZE + screenOffset);
+        const screenY: f32 = @floatFromInt(y * Const.BLOCK_SIZE + screenOffset);
+        r_shape.x = screenX;
+        r_shape.y = screenY;
+
+        ray.DrawRectangleRec(r_shape, color);
     }
 }
 
 fn _RenderShape(pos: int2, shape: *const Shape) void {
-    var r: ray.Rectangle = undefined;
-    const screenOffset = 2;
-
-    r.width = Const.BLOCK_SIZE - screenOffset;
-    r.height = Const.BLOCK_SIZE - screenOffset;
-
-    const e = shape.name;
-    const color = _E_SHAPE_ToColor(e);
-
-    for (shape.points[0..shape.pointlen]) |*p| {
-        const x = pos.x + p.x;
-        const y = pos.y + p.y;
-
-        const screenX: f32 = @floatFromInt(x * Const.BLOCK_SIZE + screenOffset);
-        const screenY: f32 = @floatFromInt(y * Const.BLOCK_SIZE + screenOffset);
-        r.x = screenX;
-        r.y = screenY;
-        ray.DrawRectangleRec(r, color);
-    }
+    __RenderShape(pos, shape, 255);
 }
 
 fn _RenderShadowShape(pos: int2, shape: *const Shape) void {
+    __RenderShape(pos, shape, 128);
+}
+
+fn __RenderShape(pos: int2, shape: *const Shape, alpha: u8) void {
     var r: ray.Rectangle = undefined;
     const screenOffset = 2;
 
@@ -171,7 +156,7 @@ fn _RenderShadowShape(pos: int2, shape: *const Shape) void {
 
     const e = shape.name;
     var color = _E_SHAPE_ToColor(e);
-    color.a = 128;
+    color.a = alpha;
 
     var iter = shape.iterate();
     while (iter.next()) |p| {

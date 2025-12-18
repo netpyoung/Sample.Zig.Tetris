@@ -36,7 +36,7 @@ pub fn format(self: *const Shape, writer: *std.Io.Writer) std.Io.Writer.Error!vo
     try writer.print("]", .{});
 }
 
-const Iterator = struct {
+pub const Iterator = struct {
     slice: []const int2,
     pub fn next(self: *@This()) ?int2 {
         if (self.slice.len == 0) {

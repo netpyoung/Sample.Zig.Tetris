@@ -33,20 +33,56 @@ pub fn Deinit(self: *Table, allocator: std.mem.Allocator) void {
 }
 
 pub fn format(self: *const Table, writer: *std.Io.Writer) std.Io.Writer.Error!void {
-    for (0..self.height) |y| {
-        for (0..self.width) |x| {
-            const idx = x + y * self.width;
-            const v = self._arr[idx];
-            const e: E_SHAPE = @enumFromInt(v);
-
-            if (e == E_SHAPE.NONE) {
-                try writer.print(".", .{});
-            } else {
-                try writer.print("{s}", .{@tagName(e)});
-            }
+    var iter = self.iterate();
+    while (iter.next()) |item| {
+        const e = item.e;
+        if (e == E_SHAPE.NONE) {
+            try writer.print(".", .{});
+        } else {
+            try writer.print("{s}", .{@tagName(e)});
         }
-        try writer.print("\n", .{});
     }
+    try writer.print("\n", .{});
+}
+
+pub const Iterator = struct {
+    slice: []const i32,
+    x: usize,
+    y: usize,
+    width: usize,
+
+    pub const Item = struct {
+        e: E_SHAPE,
+        x: usize,
+        y: usize,
+    };
+
+    pub fn next(self: *@This()) ?Item {
+        if (self.slice.len == 0) {
+            return null;
+        }
+
+        const v = self.slice[0];
+        self.slice = self.slice[1..];
+        const e: E_SHAPE = @enumFromInt(v);
+        const x = self.x;
+        const y = self.y;
+
+        self.x += 1;
+        if (self.x == self.width) {
+            self.x = 0;
+            self.y += 1;
+        }
+        return Item{
+            .x = x,
+            .y = y,
+            .e = e,
+        };
+    }
+};
+
+pub fn iterate(self: *const Table) Iterator {
+    return Iterator{ .slice = self._arr, .x = 0, .y = 0, .width = self.width };
 }
 
 pub fn GetValue(self: *const Table, x: usize, y: usize) E_SHAPE {
@@ -61,7 +97,8 @@ pub fn GetValue(self: *const Table, x: usize, y: usize) E_SHAPE {
 
 pub fn ShapeIntoTable(self: *Table, p: int2, shape: *const Shape) void {
     const v: i32 = @intCast(@intFromEnum(shape.name));
-    for (shape.points[0..shape.pointlen]) |shapep| {
+    var iter = shape.iterate();
+    while (iter.next()) |shapep| {
         const x = p.x + shapep.x;
         const y = p.y + shapep.y;
         assert(x >= 0);
@@ -76,7 +113,8 @@ pub fn ShapeIntoTable(self: *Table, p: int2, shape: *const Shape) void {
 }
 
 pub fn IsCollision(self: *const Table, shape: *const Shape) bool {
-    for (shape.points[0..shape.pointlen]) |p| {
+    var iter = shape.iterate();
+    while (iter.next()) |p| {
         const x = p.x;
         const y = p.y;
 
