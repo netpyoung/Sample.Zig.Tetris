@@ -6,8 +6,8 @@ on:
 #      - '*'
     branches:
       - main
-  paths:
-    - 'Sample.Zig.Tetris/**'
+    paths:
+      - 'Sample.Zig.Tetris/**'
 
 jobs:
   upload_assets_for_windows:
