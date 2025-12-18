@@ -1,0 +1,12 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="ARM" />
+    <Platform Name="ARM64" />
+    <Platform Name="WASM32" />
+    <Platform Name="X64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="SampleZigTetris/SampleZigTetris.zigproj" Type="98e5f03a-0b5f-41b0-a3fa-df2b47b954c1" Id="0a551c2c-1f27-402c-9174-89695ee9198a" />
+  <Project Path="SampleZigTetris_raylib/SampleZigTetris_raylib.zigproj" Type="98e5f03a-0b5f-41b0-a3fa-df2b47b954c1" Id="2b65aa74-960b-44bd-8414-945dfe674d0b" />
+</Solution>
