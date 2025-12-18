@@ -1,0 +1,10 @@
+﻿.{
+    .name = .SampleZigTetris,
+    .version = "0.0.1",
+    .fingerprint = 0x376fd8bed92f2c9d,
+    .dependencies = .{
+    },
+    .paths = .{
+        "",
+    },
+}

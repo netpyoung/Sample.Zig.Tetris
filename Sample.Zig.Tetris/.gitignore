@@ -1,0 +1,6 @@
+.vs/
+.zig-cache/
+int/
+out/
+zig-out/
+.idea/
