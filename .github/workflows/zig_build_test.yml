@@ -10,8 +10,8 @@ on:
       - 'Sample.Zig.Tetris/**'
 
 jobs:
-  upload_assets_for_windows:
-    name: 🪟📦️ Upload Assets
+  zig_build_test:
+    name: Zig Build Test
     runs-on: windows-latest
     steps:
       # https://github.com/actions/checkout
