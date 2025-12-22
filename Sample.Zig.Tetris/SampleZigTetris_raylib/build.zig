@@ -22,9 +22,9 @@ pub fn build(b: *std.Build) !void {
         .root_module = root_module,
     });
 
-    if (builtin.os.tag == .windows) {
+    {
         // raylib
-        const raylib_path = b.path("../../raylib/");
+        const raylib_path = b.path("../../raylib");
         root_module.addIncludePath(try raylib_path.join(b.allocator, "include"));
         root_module.addLibraryPath(try raylib_path.join(b.allocator, "lib"));
 
@@ -39,37 +39,59 @@ pub fn build(b: *std.Build) !void {
             root_module.linkSystemLibrary("raylib", link_opts);
 
             // install raylib.dll
-            const dll = try raylib_path.join(b.allocator, "lib/raylib.dll");
-            b.installBinFile(dll.src_path.sub_path, "raylib.dll");
+            if (builtin.os.tag == .windows) {
+                const dll = try raylib_path.join(b.allocator, "lib/raylib.dll");
+                b.installBinFile(dll.src_path.sub_path, "raylib.dll");
+            } else if (builtin.os.tag == .linux) {
+                const so_path = try raylib_path.join(b.allocator, "lib/libraylib.so");
+                const so_rpath = try std.fs.realpathAlloc(
+                    b.allocator,
+                    so_path.src_path.sub_path,
+                );
+                defer b.allocator.free(so_rpath);
+                const so_rrpath = try std.fs.path.relative(b.allocator, ".", so_rpath);
+                defer b.allocator.free(so_rrpath);
+
+                b.installBinFile(so_rrpath, "libraylib.so");
+            }
         } else {
             if (target.result.os.tag == .windows) {
                 // hide console window
                 exe.subsystem = .Windows;
                 exe.entry = .{ .symbol_name = "mainCRTStartup" };
+
+                const resolved_target = b.resolveTargetQuery(.{
+                    .cpu_arch = .x86_64,
+                    .os_tag = .windows,
+                    .abi = .msvc,
+                });
+                root_module.resolved_target = resolved_target;
+
+                const link_opts: std.Build.Module.LinkSystemLibraryOptions = .{
+                    .preferred_link_mode = .static,
+                    .search_strategy = .mode_first,
+                    .use_pkg_config = .no,
+                };
+
+                // link raylib
+                root_module.linkSystemLibrary("raylib", link_opts);
+
+                // link others
+                root_module.linkSystemLibrary("kernel32", link_opts);
+                root_module.linkSystemLibrary("user32", link_opts);
+                root_module.linkSystemLibrary("gdi32", link_opts);
+                root_module.linkSystemLibrary("winmm", link_opts);
+                root_module.linkSystemLibrary("shell32", link_opts);
+            } else if (builtin.os.tag == .linux) {
+                const link_opts: std.Build.Module.LinkSystemLibraryOptions = .{
+                    .preferred_link_mode = .static,
+                    .search_strategy = .mode_first,
+                    .use_pkg_config = .no,
+                };
+
+                // link raylib
+                root_module.linkSystemLibrary("raylib", link_opts);
             }
-
-            const resolved_target = b.resolveTargetQuery(.{
-                .cpu_arch = .x86_64,
-                .os_tag = .windows,
-                .abi = .msvc,
-            });
-            root_module.resolved_target = resolved_target;
-
-            const link_opts: std.Build.Module.LinkSystemLibraryOptions = .{
-                .preferred_link_mode = .static,
-                .search_strategy = .mode_first,
-                .use_pkg_config = .no,
-            };
-
-            // link raylib
-            root_module.linkSystemLibrary("raylib", link_opts);
-
-            // link others
-            root_module.linkSystemLibrary("kernel32", link_opts);
-            root_module.linkSystemLibrary("user32", link_opts);
-            root_module.linkSystemLibrary("gdi32", link_opts);
-            root_module.linkSystemLibrary("winmm", link_opts);
-            root_module.linkSystemLibrary("shell32", link_opts);
         }
     }
     exe.linkLibC();
@@ -94,9 +116,22 @@ pub fn build(b: *std.Build) !void {
     const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
     const test_step = b.step("test", "Run unit tests");
     {
-        const sdl_path = b.path("../../raylib/");
-        const bin = try sdl_path.join(b.allocator, "lib/raylib.dll");
-        _ = try test_step.installFile(bin, "raylib.dll");
+        const raylib_path = b.path("../../raylib/");
+
+        // install raylib.dll
+        if (target.result.os.tag == .windows) {
+            const dll = try raylib_path.join(b.allocator, "lib/raylib.dll");
+            _ = try test_step.installFile(dll, "raylib.dll");
+        } else if (target.result.os.tag == .linux) {
+            const so_path = try raylib_path.join(b.allocator, "lib/libraylib.so");
+            const so_rpath = try std.fs.realpathAlloc(
+                b.allocator,
+                so_path.src_path.sub_path,
+            );
+            defer b.allocator.free(so_rpath);
+
+            _ = try test_step.installFile(.{ .cwd_relative = so_rpath }, "libraylib.so");
+        }
     }
     test_step.dependOn(&run_exe_unit_tests.step);
 }
