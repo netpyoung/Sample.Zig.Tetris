@@ -1,0 +1,16 @@
+.{
+    .name = .SampleZigTetris_sdl3,
+    .fingerprint = 0xa3368d1ee3a20a3f,
+    .version = "0.0.0",
+    .dependencies = .{
+        .dep_SampleZigTetris = .{
+            .path = "../SampleZigTetris",
+        },
+    },
+
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+    },
+}

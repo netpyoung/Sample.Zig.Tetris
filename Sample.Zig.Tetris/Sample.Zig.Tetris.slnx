@@ -9,4 +9,5 @@
   </Configurations>
   <Project Path="SampleZigTetris/SampleZigTetris.zigproj" Type="98e5f03a-0b5f-41b0-a3fa-df2b47b954c1" Id="0a551c2c-1f27-402c-9174-89695ee9198a" />
   <Project Path="SampleZigTetris_raylib/SampleZigTetris_raylib.zigproj" Type="98e5f03a-0b5f-41b0-a3fa-df2b47b954c1" Id="2b65aa74-960b-44bd-8414-945dfe674d0b" />
+  <Project Path="SampleZigTetris_sdl3/SampleZigTetris_sdl3.zigproj" Type="98e5f03a-0b5f-41b0-a3fa-df2b47b954c1" Id="740213f9-58c2-4055-b87c-95b24b668c8b" />
 </Solution>
