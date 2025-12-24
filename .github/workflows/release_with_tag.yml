@@ -83,7 +83,7 @@ jobs:
         shell: pwsh
         run: |
           Push-Location Sample.Zig.Tetris/SampleZigTetris_sdl3
-          zig build -Doptimize=ReleaseFast
+          zig build -Doptimize=ReleaseSmall
           Pop-Location # Sample.Zig.Tetris/SampleZigTetris_sdl3
 
       - name: 📦️⏫ Upload Artifact - SampleZigTetris_sdl3
