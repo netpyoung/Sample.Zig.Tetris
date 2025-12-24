@@ -13,5 +13,8 @@ This project is a small Tetris implementation for learning Zig while keeping up 
 
 ## Used
 
-- Lib: [raysan5/raylib](https://github.com/raysan5/raylib)
+- Lib:
+  - [raysan5/raylib](https://github.com/raysan5/raylib)
+  - [libsdl-org/SDL](https://github.com/libsdl-org/SDL)
+  - [libsdl-org/SDL_ttf](https://github.com/libsdl-org/SDL_ttf)
 - IDE: [LuckystarStudio.ZigVS](https://marketplace.visualstudio.com/items?itemName=LuckystarStudio.ZigVS)
