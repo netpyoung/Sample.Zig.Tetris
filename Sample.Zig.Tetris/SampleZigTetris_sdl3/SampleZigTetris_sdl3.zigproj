@@ -205,7 +205,6 @@
     </Compile>
     <None Include="build.zig" />
     <None Include="build.zig.zon" />
-    <None Include="readme.txt" />
   </ItemGroup>
   <!-- Read https://learn.microsoft.com/en-us/visualstudio/extensibility/visual-cpp-project-extensibility?view=vs-2022 -->
   <ItemGroup>
