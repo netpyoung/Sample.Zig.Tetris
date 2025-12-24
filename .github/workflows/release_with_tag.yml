@@ -134,7 +134,7 @@ jobs:
           cd download-artifacts
           
           zip -r windows-x64-sdl3.zip          artifact-windows-x64-sdl3/
-          zip -r windows-x64-raylib.zip        artifact-windows-x64-raylib-wasm/
+          zip -r windows-x64-raylib.zip        artifact-windows-x64-raylib/
 
       - name: Get Tagname
         id: tag_name
