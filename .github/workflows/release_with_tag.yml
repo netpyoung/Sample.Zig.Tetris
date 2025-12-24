@@ -8,8 +8,8 @@ on:
 #      - main
 
 jobs:
-  upload_assets_for_windows:
-    name: 🪟📦️ Upload Assets
+  upload_assets_for_windows_x64_raylib:
+    name: 🪟📦️ Upload Assets - windows_x64_raylib
     runs-on: windows-latest
     steps:
       # https://github.com/actions/checkout
@@ -34,7 +34,7 @@ jobs:
       - name: install deps
         shell: pwsh
         run: |
-          .\install_deps_windows.ps1
+          .\install_deps_windows_raylib.ps1
       - name: build
         shell: pwsh
         run: |
@@ -42,20 +42,67 @@ jobs:
           zig build -Doptimize=ReleaseFast
           Pop-Location # Sample.Zig.Tetris/SampleZigTetris_raylib
 
-
       - name: 📦️⏫ Upload Artifact - SampleZigTetris_raylib
         uses: actions/upload-artifact@v4
         with:
-          name: artifact-windows-exe
-          path: Sample.Zig.Tetris/SampleZigTetris_raylib/zig-out/bin/SampleZigTetris_raylib.exe
+          name: artifact-windows-x64-raylib
+          path: |
+            Sample.Zig.Tetris/SampleZigTetris_raylib/zig-out/bin/SampleZigTetris_raylib.exe
           if-no-files-found: error
           retention-days: 1
           compression-level: 0
 
+  upload_assets_for_windows_x64_sdl3:
+    name: 🪟📦️ Upload Assets - windows_x64_sdl3
+    runs-on: windows-latest
+    steps:
+      # https://github.com/actions/checkout
+      - name: checkout
+        uses: actions/checkout@v5
+
+      # https://codeberg.org/mlugg/setup-zig/
+      - name: setup zig
+        uses: mlugg/setup-zig@v2
+        with:
+          version: 0.15.2
+
+      # https://github.com/actions/cache
+      - name: Cache Zig build
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/zig
+          key: zig-${{ runner.os }}-${{ hashFiles('**/*.zig') }}
+          restore-keys: |
+            zig-${{ runner.os }}-
+
+      - name: install deps
+        shell: pwsh
+        run: |
+          .\install_deps_windows_sdl3.ps1
+      - name: build
+        shell: pwsh
+        run: |
+          Push-Location Sample.Zig.Tetris/SampleZigTetris_sdl3
+          zig build -Doptimize=ReleaseFast
+          Pop-Location # Sample.Zig.Tetris/SampleZigTetris_sdl3
+
+      - name: 📦️⏫ Upload Artifact - SampleZigTetris_sdl3
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifact-windows-x64-sdl3
+          path: |
+            Sample.Zig.Tetris/SampleZigTetris_sdl3/zig-out/bin/SampleZigTetris_sdl3.exe
+            Sample.Zig.Tetris/SampleZigTetris_sdl3/zig-out/bin/SDL3.dll
+            Sample.Zig.Tetris/SampleZigTetris_sdl3/zig-out/bin/SDL3_ttf.dll
+            Sample.Zig.Tetris/SampleZigTetris_sdl3/zig-out/bin/arial.ttf
+
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
 
   ## ======================================================================================================
   release:
-    needs: [upload_assets_for_windows]
+    needs: [upload_assets_for_windows_x64_raylib, upload_assets_for_windows_x64_sdl3]
     name: 🚀 Release
     runs-on: ubuntu-latest
     steps:
@@ -82,6 +129,13 @@ jobs:
           ls -alh
           ls -alh download-artifacts
 
+      - name: 📦 Zip Artifacts
+        run: |
+          cd download-artifacts
+          
+          zip -r windows-x64-sdl3.zip          artifact-windows-x64-sdl3/
+          zip -r windows-x64-raylib.zip        artifact-windows-x64-raylib-wasm/
+
       - name: Get Tagname
         id: tag_name
         run: |
@@ -107,4 +161,5 @@ jobs:
           body: ${{ steps.changelog_reader.outputs.changes }}
           fail_on_unmatched_files: true
           files: |
-            ./download-artifacts/SampleZigTetris_raylib.exe
+            ./download-artifacts/windows-x64-sdl3.zip
+            ./download-artifacts/windows-x64-raylib.zip
