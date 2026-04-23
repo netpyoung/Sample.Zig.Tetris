@@ -9,9 +9,8 @@ const Game = @import("impl/Game.zig");
 // extern "c" fn _getch() u8;
 // _ = _getch();
 
-pub fn main() !void {
-    const allocator = init_allocator();
-    defer deinit_allocator();
+pub fn main(init: std.process.Init) !void {
+    const allocator = init.gpa;
 
     ray.SetConfigFlags(ray.FLAG_WINDOW_RESIZABLE);
 
@@ -48,30 +47,6 @@ pub fn main() !void {
 
 // ===============================================================================
 // ===============================================================================
-
-var gpa_instance = std.heap.GeneralPurposeAllocator(.{
-    .thread_safe = true,
-    .never_unmap = true,
-    .retain_metadata = true,
-    .stack_trace_frames = 16,
-}){};
-
-fn init_allocator() std.mem.Allocator {
-    if (builtin.mode == .Debug or builtin.mode == .ReleaseSafe) {
-        return gpa_instance.allocator();
-    } else {
-        return std.heap.page_allocator;
-    }
-}
-
-fn deinit_allocator() void {
-    if (builtin.mode == .Debug or builtin.mode == .ReleaseSafe) {
-        const leaked = gpa_instance.deinit();
-        if (leaked == .leak) {
-            std.debug.print("\nMemory leak detected!\n", .{});
-        }
-    }
-}
 
 fn _MakeGame(allocator: std.mem.Allocator) Game {
     if (builtin.mode == .Debug) {

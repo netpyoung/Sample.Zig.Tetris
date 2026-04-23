@@ -94,7 +94,7 @@ pub fn build(b: *std.Build) !void {
             }
         }
     }
-    exe.linkLibC();
+    root_module.link_libc = true;
 
     b.installArtifact(exe);
 
@@ -124,9 +124,10 @@ pub fn build(b: *std.Build) !void {
             _ = try test_step.installFile(dll, "raylib.dll");
         } else if (target.result.os.tag == .linux) {
             const so_path = try raylib_path.join(b.allocator, "lib/libraylib.so");
-            const so_rpath = try std.fs.realpathAlloc(
-                b.allocator,
+            const so_rpath = try std.Io.Dir.realPathFileAbsoluteAlloc(
+                b.graph.io,
                 so_path.src_path.sub_path,
+                b.allocator,
             );
             defer b.allocator.free(so_rpath);
 
