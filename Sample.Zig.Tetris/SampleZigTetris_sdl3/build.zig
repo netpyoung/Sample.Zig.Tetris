@@ -31,19 +31,19 @@ pub fn build(b: *std.Build) void {
             };
             {
                 const sdl_path = b.path("../../SDL3_lib/SDL3/");
-                exe.addIncludePath(sdl_path.join(b.allocator, "include") catch unreachable);
-                exe.addLibraryPath(sdl_path.join(b.allocator, "lib/x64") catch unreachable);
+                root_module.addIncludePath(sdl_path.join(b.allocator, "include") catch unreachable);
+                root_module.addLibraryPath(sdl_path.join(b.allocator, "lib/x64") catch unreachable);
                 const bin = sdl_path.join(b.allocator, "lib/x64/SDL3.dll") catch unreachable;
                 b.installBinFile(bin.src_path.sub_path, "SDL3.dll");
-                exe.root_module.linkSystemLibrary("SDL3", dynamic_link_opts);
+                root_module.linkSystemLibrary("SDL3", dynamic_link_opts);
             }
             {
                 const sdl_path = b.path("../../SDL3_lib/SDL3_ttf/");
-                exe.addIncludePath(sdl_path.join(b.allocator, "include") catch unreachable);
-                exe.addLibraryPath(sdl_path.join(b.allocator, "lib/x64") catch unreachable);
+                root_module.addIncludePath(sdl_path.join(b.allocator, "include") catch unreachable);
+                root_module.addLibraryPath(sdl_path.join(b.allocator, "lib/x64") catch unreachable);
                 const bin = sdl_path.join(b.allocator, "lib/x64/SDL3_ttf.dll") catch unreachable;
                 b.installBinFile(bin.src_path.sub_path, "SDL3_ttf.dll");
-                exe.root_module.linkSystemLibrary("SDL3_ttf", dynamic_link_opts);
+                root_module.linkSystemLibrary("SDL3_ttf", dynamic_link_opts);
             }
         }
         {
@@ -60,7 +60,7 @@ pub fn build(b: *std.Build) void {
         }
     }
 
-    exe.linkLibC();
+    root_module.link_libc = true;
 
     b.installArtifact(exe);
 

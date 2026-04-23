@@ -8,7 +8,7 @@ const Game = @import("impl/Game.zig");
 
 const print = std.debug.print;
 
-pub fn main() u8 {
+pub fn main(init: std.process.Init) u8 {
     sdl.SDL_SetMainReady();
 
     if (!sdl.SDL_Init(sdl.SDL_INIT_VIDEO)) {
@@ -34,8 +34,7 @@ pub fn main() u8 {
     Game.SdlStuff.Init(renderer.?) catch unreachable;
     defer Game.SdlStuff.Deinit();
 
-    const allocator = init_allocator();
-    defer deinit_allocator();
+    const allocator = init.gpa;
 
     var time = Time.Init(60);
     var game: Game = _MakeGame(allocator);
@@ -80,30 +79,6 @@ pub fn main() u8 {
 }
 // ===============================================================================
 // ===============================================================================
-
-var gpa_instance = std.heap.GeneralPurposeAllocator(.{
-    .thread_safe = true,
-    .never_unmap = true,
-    .retain_metadata = true,
-    .stack_trace_frames = 16,
-}){};
-
-fn init_allocator() std.mem.Allocator {
-    if (builtin.mode == .Debug or builtin.mode == .ReleaseSafe) {
-        return gpa_instance.allocator();
-    } else {
-        return std.heap.page_allocator;
-    }
-}
-
-fn deinit_allocator() void {
-    if (builtin.mode == .Debug or builtin.mode == .ReleaseSafe) {
-        const leaked = gpa_instance.deinit();
-        if (leaked == .leak) {
-            std.debug.print("\nMemory leak detected!\n", .{});
-        }
-    }
-}
 
 fn _MakeGame(allocator: std.mem.Allocator) Game {
     if (builtin.mode == .Debug) {
