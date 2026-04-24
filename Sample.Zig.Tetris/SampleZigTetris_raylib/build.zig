@@ -11,21 +11,21 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
     });
 
-    const dep_SampleZigTetris = b.dependency("dep_SampleZigTetris", .{
+    const translate_c = b.addTranslateC(.{
+        .root_source_file = b.path("src/c.h"),
         .target = target,
         .optimize = optimize,
     });
-    root_module.addImport("SampleZigTetris", dep_SampleZigTetris.module("mod_SampleZigTetris"));
 
-    const exe = b.addExecutable(.{
-        .name = "SampleZigTetris_raylib",
-        .root_module = root_module,
+    const dep_SampleZigTetris = b.dependency("dep_SampleZigTetris", .{
+        .target = target,
+        .optimize = optimize,
     });
 
     {
         // raylib
         const raylib_path = b.path("../../raylib");
-        root_module.addIncludePath(try raylib_path.join(b.allocator, "include"));
+        translate_c.addIncludePath(try raylib_path.join(b.allocator, "include"));
         root_module.addLibraryPath(try raylib_path.join(b.allocator, "lib"));
 
         if (optimize == .Debug) {
@@ -56,10 +56,6 @@ pub fn build(b: *std.Build) !void {
             }
         } else {
             if (target.result.os.tag == .windows) {
-                // hide console window
-                exe.subsystem = .Windows;
-                exe.entry = .{ .symbol_name = "mainCRTStartup" };
-
                 const resolved_target = b.resolveTargetQuery(.{
                     .cpu_arch = .x86_64,
                     .os_tag = .windows,
@@ -94,7 +90,23 @@ pub fn build(b: *std.Build) !void {
             }
         }
     }
+
+    root_module.addImport("SampleZigTetris", dep_SampleZigTetris.module("mod_SampleZigTetris"));
+    root_module.addImport("c", translate_c.createModule());
     root_module.link_libc = true;
+
+    const exe = b.addExecutable(.{
+        .name = "SampleZigTetris_raylib",
+        .root_module = root_module,
+    });
+
+    if (target.result.os.tag != .windows) {
+        if (optimize != .Debug) {
+            // hide console window
+            exe.subsystem = .Windows;
+            exe.entry = .{ .symbol_name = "mainCRTStartup" };
+        }
+    }
 
     b.installArtifact(exe);
 

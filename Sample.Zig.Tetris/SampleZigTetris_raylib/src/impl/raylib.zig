@@ -1,3 +1,1 @@
-pub const ray = @cImport({
-    @cInclude("raylib.h");
-});
+pub const ray = @import("c");

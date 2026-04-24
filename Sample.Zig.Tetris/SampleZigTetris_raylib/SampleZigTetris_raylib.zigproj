@@ -213,6 +213,11 @@
       <SubType>Content</SubType>
     </Content>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\c.h">
+      <SubType>Code</SubType>
+    </ClInclude>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="$(MSBuildBinPath)\Microsoft.Common.tasks" />
   <Target Condition="'$(GenerateBuildDotZig)' == 'true'" Name="GenerateBuildDotZig">
