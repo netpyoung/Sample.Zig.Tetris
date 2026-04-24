@@ -10,15 +10,15 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    const dep_SampleZigTetris = b.dependency("dep_SampleZigTetris", .{
+    const translate_c = b.addTranslateC(.{
+        .root_source_file = b.path("src/c.h"),
         .target = target,
         .optimize = optimize,
     });
-    root_module.addImport("SampleZigTetris", dep_SampleZigTetris.module("mod_SampleZigTetris"));
 
-    const exe = b.addExecutable(.{
-        .name = "SampleZigTetris_sdl3",
-        .root_module = root_module,
+    const dep_SampleZigTetris = b.dependency("dep_SampleZigTetris", .{
+        .target = target,
+        .optimize = optimize,
     });
 
     if (target.result.os.tag == .windows) {
@@ -31,7 +31,7 @@ pub fn build(b: *std.Build) void {
             };
             {
                 const sdl_path = b.path("../../SDL3_lib/SDL3/");
-                root_module.addIncludePath(sdl_path.join(b.allocator, "include") catch unreachable);
+                translate_c.addIncludePath(sdl_path.join(b.allocator, "include") catch unreachable);
                 root_module.addLibraryPath(sdl_path.join(b.allocator, "lib/x64") catch unreachable);
                 const bin = sdl_path.join(b.allocator, "lib/x64/SDL3.dll") catch unreachable;
                 b.installBinFile(bin.src_path.sub_path, "SDL3.dll");
@@ -39,7 +39,7 @@ pub fn build(b: *std.Build) void {
             }
             {
                 const sdl_path = b.path("../../SDL3_lib/SDL3_ttf/");
-                root_module.addIncludePath(sdl_path.join(b.allocator, "include") catch unreachable);
+                translate_c.addIncludePath(sdl_path.join(b.allocator, "include") catch unreachable);
                 root_module.addLibraryPath(sdl_path.join(b.allocator, "lib/x64") catch unreachable);
                 const bin = sdl_path.join(b.allocator, "lib/x64/SDL3_ttf.dll") catch unreachable;
                 b.installBinFile(bin.src_path.sub_path, "SDL3_ttf.dll");
@@ -54,13 +54,23 @@ pub fn build(b: *std.Build) void {
             );
             b.getInstallStep().dependOn(&font_file.step);
         }
+    }
+
+    root_module.addImport("SampleZigTetris", dep_SampleZigTetris.module("mod_SampleZigTetris"));
+    root_module.addImport("c", translate_c.createModule());
+    root_module.link_libc = true;
+
+    const exe = b.addExecutable(.{
+        .name = "SampleZigTetris_sdl3",
+        .root_module = root_module,
+    });
+
+    if (target.result.os.tag != .windows) {
         if (optimize != .Debug) {
             exe.subsystem = .Windows;
             exe.entry = .{ .symbol_name = "mainCRTStartup" };
         }
     }
-
-    root_module.link_libc = true;
 
     b.installArtifact(exe);
 
