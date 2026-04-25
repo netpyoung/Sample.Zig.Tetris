@@ -65,7 +65,7 @@ pub fn build(b: *std.Build) void {
         .root_module = root_module,
     });
 
-    if (target.result.os.tag != .windows) {
+    if (target.result.os.tag == .windows) {
         if (optimize != .Debug) {
             exe.subsystem = .Windows;
             exe.entry = .{ .symbol_name = "mainCRTStartup" };

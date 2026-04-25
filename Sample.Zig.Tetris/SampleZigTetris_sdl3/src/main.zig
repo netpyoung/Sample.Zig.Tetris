@@ -84,6 +84,11 @@ fn _MakeGame(allocator: std.mem.Allocator) Game {
     if (builtin.mode == .Debug) {
         return Game.Init(allocator, 100);
     } else {
-        return Game.Init(allocator, @intCast(std.time.nanoTimestamp()));
+        var threaded_io: std.Io.Threaded = .init_single_threaded;
+        const io = threaded_io.io();
+        defer threaded_io.deinit();
+
+        const time_now = std.Io.Clock.now(.awake, io).toNanoseconds();
+        return Game.Init(allocator, @intCast(time_now));
     }
 }
