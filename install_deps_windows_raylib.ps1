@@ -1,4 +1,6 @@
-$u="https://github.com/raysan5/raylib/releases/download/5.5/raylib-5.5_win64_msvc16.zip"
+$raylib_version="6.0"
+
+$u="https://github.com/raysan5/raylib/releases/download/${raylib_version}/raylib-${raylib_version}_win64_msvc16.zip"
 $z="$PWD\raylib.zip"
 $d="$PWD\raylib"
 
