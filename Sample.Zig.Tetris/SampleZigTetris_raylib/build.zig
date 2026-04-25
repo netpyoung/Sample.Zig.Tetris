@@ -15,12 +15,15 @@ pub fn build(b: *std.Build) !void {
         .root_source_file = b.path("src/c.h"),
         .target = target,
         .optimize = optimize,
+        .link_libc = true,
     });
 
     const dep_SampleZigTetris = b.dependency("dep_SampleZigTetris", .{
         .target = target,
         .optimize = optimize,
     });
+
+    const c_module = translate_c.createModule();
 
     {
         // raylib
@@ -65,15 +68,20 @@ pub fn build(b: *std.Build) !void {
 
                 const link_opts: std.Build.Module.LinkSystemLibraryOptions = .{
                     .preferred_link_mode = .static,
-                    .search_strategy = .mode_first,
+                    .search_strategy = .no_fallback,
                     .use_pkg_config = .no,
+                    // .needed = true,
+                    .weak = true,
                 };
 
                 // link raylib
-                root_module.linkSystemLibrary("raylib", link_opts);
+                c_module.linkSystemLibrary("raylib", link_opts);
 
                 // link others
                 root_module.linkSystemLibrary("kernel32", link_opts);
+                // NOTE(pyoung):
+                // error: lld-link: duplicate symbol: CloseWindow
+                // https://codeberg.org/ziglang/zig/issues/31314
                 root_module.linkSystemLibrary("user32", link_opts);
                 root_module.linkSystemLibrary("gdi32", link_opts);
                 root_module.linkSystemLibrary("winmm", link_opts);
@@ -81,7 +89,7 @@ pub fn build(b: *std.Build) !void {
             } else if (builtin.os.tag == .linux) {
                 const link_opts: std.Build.Module.LinkSystemLibraryOptions = .{
                     .preferred_link_mode = .static,
-                    .search_strategy = .mode_first,
+                    .search_strategy = .no_fallback,
                     .use_pkg_config = .no,
                 };
 
@@ -92,7 +100,7 @@ pub fn build(b: *std.Build) !void {
     }
 
     root_module.addImport("SampleZigTetris", dep_SampleZigTetris.module("mod_SampleZigTetris"));
-    root_module.addImport("c", translate_c.createModule());
+    root_module.addImport("c", c_module);
     root_module.link_libc = true;
 
     const exe = b.addExecutable(.{
@@ -100,7 +108,7 @@ pub fn build(b: *std.Build) !void {
         .root_module = root_module,
     });
 
-    if (target.result.os.tag != .windows) {
+    if (target.result.os.tag == .windows) {
         if (optimize != .Debug) {
             // hide console window
             exe.subsystem = .Windows;
